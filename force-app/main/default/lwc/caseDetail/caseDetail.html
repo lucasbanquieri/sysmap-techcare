@@ -1,0 +1,24 @@
+<template>
+    <lightning-card title="SLA Remaining">
+        <div class="slds-p-horizontal_medium">
+            <template if:true={showSLARemaining}>
+                <p>{SLARemaining.days} Days, {SLARemaining.hours} Hours remaining.</p>
+            </template>
+            <template if:true={showSLAExpired}>
+                <p class="slds-text-color_error">The SLA expired.</p>
+            </template>
+
+            <template if:true={isCaseClosed}>
+                <p>This Case Request is already closed.</p>
+                <template if:true={showReopenButton}>
+                    <lightning-button 
+                        class="slds-m-top_medium" 
+                        variant="brand" 
+                        label="Reopen Case" 
+                        onclick={handleReopenClick}>
+                    </lightning-button>
+                </template>
+            </template>
+        </div>
+    </lightning-card>
+</template>
