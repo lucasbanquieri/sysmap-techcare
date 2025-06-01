@@ -12,6 +12,8 @@ import reopenCaseRequest from '@salesforce/apex/CaseRequestReopen.reopenCaseRequ
 
 export default class CaseDetail extends LightningElement {
 
+    static ALLOWED_PROFILES = ['Support Premium', 'System Administrator'];
+
     @api recordId;
     @track isCaseClosed;
     @track profileName;
@@ -65,7 +67,7 @@ export default class CaseDetail extends LightningElement {
         if (!this.dataReady)
             return false;
 
-        return this?.caseStatus === 'Closed' && (this?.profileName === 'Support Premium' || this?.profileName === 'System Administrator');
+        return this?.caseStatus === 'Closed' && ALLOWED_PROFILES.includes(this?.profileName);
     }
 
     startCountdown() {
@@ -88,7 +90,6 @@ export default class CaseDetail extends LightningElement {
         const totalSeconds = Math.floor(difference / 1000);
         const days = Math.floor(totalSeconds / (3600 * 24));
         const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
 
         this.SLARemaining = { days, hours, minutes };
     }
