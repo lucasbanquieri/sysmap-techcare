@@ -91,7 +91,7 @@ export default class CaseDetail extends LightningElement {
         const days = Math.floor(totalSeconds / (3600 * 24));
         const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
 
-        this.SLARemaining = { days, hours, minutes };
+        this.SLARemaining = { days, hours };
     }
 
     handleReopenClick() {
