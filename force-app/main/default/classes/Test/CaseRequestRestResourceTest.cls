@@ -21,7 +21,7 @@ private class CaseRequestRestResourceTest {
         insert cr;
         
         RestRequest req = new RestRequest();
-        req.requestUri = '/services/apexrest/caserequest/' + cr.Id;
+        req.requestUri = '/services/apexrest/v1/caserequest/' + cr.Id;
         req.httpMethod = 'GET';
 
         RestContext.request = req;
@@ -34,9 +34,10 @@ private class CaseRequestRestResourceTest {
         String response = RestContext.response.responseBody.toString();
         Map<String, Object> responseMap = (Map<String, Object>) JSON.deserializeUntyped(response);
 
+        System.debug(responseMap);
         System.assertEquals(200, RestContext.response.statusCode);
-        System.assertEquals('In Progress', responseMap.get('Status__c'));
-        System.assertEquals(null, responseMap.get('SLA_Met__c'));
+        System.assertEquals('In Progress', responseMap.get('Status'));
+        System.assertEquals(null, responseMap.get('SLAMet'));
     }
 
     /**
@@ -59,7 +60,7 @@ private class CaseRequestRestResourceTest {
         insert ch;
         
         RestRequest req = new RestRequest();
-        req.requestUri = '/services/apexrest/caserequest/' + cr.Id;
+        req.requestUri = '/services/apexrest/v1/caserequest/' + cr.Id;
         req.httpMethod = 'GET';
 
         RestContext.request = req;
@@ -69,20 +70,12 @@ private class CaseRequestRestResourceTest {
         CaseRequestRestResource.getCaseRequestInfoById();
         Test.stopTest();
         
-        //All the mapping below were necessary to get the SLA_Met__c field in the response when its originally a Blob
-        //START OF MAPPING
         String response = RestContext.response.responseBody.toString();
         Map<String, Object> responseMap = (Map<String, Object>) JSON.deserializeUntyped(response);
-        Map<String, Object> caseHistory = (Map<String, Object>) responseMap.get('Case_History__r');
-        List<Object> historyRecords = (List<Object>) caseHistory.get('records');
-        Map<String, Object> firstHistoryRecord = (Map<String, Object>) historyRecords[0];
-        //END OF MAPPING
-
-        Boolean slaMet = (Boolean) firstHistoryRecord.get('SLA_Met__c');
 
         System.assertEquals(200, RestContext.response.statusCode);
-        System.assertEquals('In Progress', responseMap.get('Status__c'));
-        System.assertEquals(false, slaMet);
+        System.assertEquals('In Progress', responseMap.get('Status'));
+        System.assertEquals(false, responseMap.get('SLAMet'));
     }
 
     /**
@@ -91,7 +84,7 @@ private class CaseRequestRestResourceTest {
     @isTest
     static void testGetCaseRequestInfoByIdNotFound() {        
         RestRequest req = new RestRequest();
-        req.requestUri = '/services/apexrest/caserequest/' + '1234TEST';
+        req.requestUri = '/services/apexrest/caserequest/' + '111111111111111';
         req.httpMethod = 'GET';
 
         RestContext.request = req;
@@ -103,5 +96,25 @@ private class CaseRequestRestResourceTest {
 
         System.assertEquals(404, RestContext.response.statusCode);
         System.assert(RestContext.response.responseBody.toString().contains('Case not found'));
+    }
+
+    /**
+    * @description  : Method used to test getCaseRequestInfoById when the Id is bot valid.
+    */
+    @isTest
+    static void testGetCaseRequestInfoByIdInvalidId() {        
+        RestRequest req = new RestRequest();
+        req.requestUri = '/services/apexrest/caserequest/' + 'TESTE1234';
+        req.httpMethod = 'GET';
+
+        RestContext.request = req;
+        RestContext.response = new RestResponse();
+        
+        Test.startTest();
+        CaseRequestRestResource.getCaseRequestInfoById();
+        Test.stopTest();
+
+        System.assertEquals(400, RestContext.response.statusCode);
+        System.assert(RestContext.response.responseBody.toString().contains('Invalid or missing Case Request ID'));
     }
 }

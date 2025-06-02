@@ -23,7 +23,9 @@ public with sharing class CaseRequestReopen {
         if (caseRequest.Status__c != 'Closed')
             throw new AuraHandledException('This case request is not closed.');
 
+        caseRequest.Bypass_Status_Validation__c = true;
         caseRequest.Status__c = 'In Progress';
         update caseRequest;
+        caseRequest.Bypass_Status_Validation__c = false;
     }
 }

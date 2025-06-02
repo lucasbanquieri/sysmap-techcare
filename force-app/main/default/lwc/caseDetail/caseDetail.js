@@ -12,8 +12,6 @@ import reopenCaseRequest from '@salesforce/apex/CaseRequestReopen.reopenCaseRequ
 
 export default class CaseDetail extends LightningElement {
 
-    static ALLOWED_PROFILES = ['Support Premium', 'System Administrator'];
-
     @api recordId;
     @track isCaseClosed;
     @track profileName;
@@ -23,7 +21,7 @@ export default class CaseDetail extends LightningElement {
     @track dataReady = false;
     intervalId;
     @track SLARemaining = 0;
-
+    
     @wire(getRecord, { recordId: USER_ID, fields: PROFILE_NAME_FIELD })
     getUserProfile({ data, error }) {
         if (data) {
@@ -42,32 +40,11 @@ export default class CaseDetail extends LightningElement {
             if (this.caseStatus === 'Closed')
                 this.isCaseClosed = true;
 
-            this.dataReady = true;
+            this.dataReady = true; //Variable used to avoid null data for the components
             this.startCountdown();
         } else if (error) {
             console.error('Error fetching record:', error);
         }
-    }
-
-    get showSLARemaining() {
-        if (!this.dataReady)
-            return false;
-
-        return this?.caseStatus !== 'Closed' && this?.SLARemaining?.hours > 0;
-    }
-
-    get showSLAExpired() {
-        if (!this.dataReady)
-            return false;
-
-        return this?.caseStatus !== 'Closed' && this?.SLARemaining <= 0;
-    }
-
-    get showReopenButton() {
-        if (!this.dataReady)
-            return false;
-
-        return this?.caseStatus === 'Closed' && ALLOWED_PROFILES.includes(this?.profileName);
     }
 
     startCountdown() {
@@ -103,7 +80,7 @@ export default class CaseDetail extends LightningElement {
                     variant: 'success'
                 }));
                 this.isCaseClosed = false;
-                getRecordNotifyChange([{ recordId: this.recordId }]);
+                getRecordNotifyChange([{ recordId: this.recordId }]); //Used to update the UI without manual refresh
             })
             .catch(error => {
                 this.dispatchEvent(new ShowToastEvent({
@@ -113,6 +90,30 @@ export default class CaseDetail extends LightningElement {
                 }))
             });
     }
+
+
+    ////////////////////////////////////CONDITIONAL RENDERING RULES////////////////////////////////////
+    get showSLARemaining() {
+        if (!this.dataReady)
+            return false;
+
+        return this?.caseStatus !== 'Closed' && this?.SLARemaining?.hours > 0;
+    }
+
+    get showSLAExpired() {
+        if (!this.dataReady)
+            return false;
+
+        return this?.caseStatus !== 'Closed' && this?.SLARemaining <= 0;
+    }
+
+    get showReopenButton() {
+        if (!this.dataReady)
+            return false;
+
+        return this?.caseStatus === 'Closed' && (this?.profileName === 'Support Premium' || this?.profileName === 'System Administrator');
+    }
+    ////////////////////////////////////END OF CONDITIONAL RENDERING RULES////////////////////////////////////
 
     disconnectedCallback() {
         clearInterval(this.intervalId);
