@@ -5,7 +5,7 @@ This is a project of an app called TechCare for the Salesforce platform, which i
 ## Functionalities
 - Trigger that fires when Case Request status changes to "Closed" and creates a Case_History__c object containing the closed date and if SLA was met or not;
 - LWC component used to show a countdown timer for the SLA and a "Reopen Case" button on its record page. This component only displays for users with "Support Premium" profile;
-- REST Resource API with the /caserequest/* endpoint where given a Case Request Id it returns a JSON containing the object's status and if SLA was met or not, when applied.
+- REST Resource API with the /v1/caserequest/* endpoint where given a Case Request Id it returns a JSON containing the object's status and if SLA was met or not, when applied.
 
 ## Installation
 
@@ -18,6 +18,7 @@ This is a project of an app called TechCare for the Salesforce platform, which i
     |__ Status__c(Picklist: New, In Progress, Escalated, Closed)  
     |__ SLA_Deadline__c(DateTime)  
     |__ Resolution_Notes__c(Long Text Area)  
+    |__ Bypass_Status_Validation(Checkbox)
     
     **Case_History__c**  
     |__ Time_Closed__c(DateTime)  
@@ -36,7 +37,8 @@ This is a project of an app called TechCare for the Salesforce platform, which i
 5. Import the project to your local machine and deploy source to Org:  
 ```git clone https://github.com/lucasbanquieri/sysmap-techcare/```  
 ```cd yourlocalfolder```  
-```npm install```  
+```authorize your org```  
+```sfdx force:source:push```  
 
 ## Testing
 
@@ -65,7 +67,7 @@ Testing the LWC component:
 Returns the Status__c and SLA_Met__c for a given Case Request ID.  
 
 **Method:** `GET`  
-**URL:** `/caserequest/{caseid}`  
+**URL:** `/caserequest/{id}`  
 **Auth Required:** Yes  
 **Headers:**  
 ```http
@@ -81,37 +83,18 @@ Content-Type: application/json
 **Response Body Example**  
 ```json
 {
-   "attributes":{
-      "type":"Case_Request__c",
-      "url":"/services/data/v63.0/sobjects/Case_Request__c/XXXXXXXXXXXXXXXXXXXX"
-   },
-   "Id":"XXXXXXXXXXXXXXXXXXXX",
-   "Status__c":"In Progress",
-   "Case_History__r":{
-      "totalSize":1,
-      "done":true,
-      "records":[
-         {
-            "attributes":{
-               "type":"Case_History__c",
-               "url":"/services/data/v63.0/sobjects/Case_History__c/YYYYYYYYYYYYYYYYY"
-            },
-            "Case_Request__c":"XXXXXXXXXXXXXXXXXXXX",
-            "Id":"YYYYYYYYYYYYYYYYY",
-            "SLA_Met__c":true
-         }
-      ]
-   }
+   "Status":"In Progress",
+   "SLAMet":true
 }
 ```
 **Possible Status Codes:**  
-- 200 OK - Success  
-- 404 Not Found - Case Request not found  
-- 500 Internal Server Error - Something unexpected happened
+- ```200 OK``` - Success  
+- ```404 Not Found``` - Case Request not found  
+- ```400 Bad Request``` - Invalid or blank Id
 
 **Example request:**  
 ```bash
-curl -X GET https://yourdomain.com/caserequest/{caseid} \
+curl -X GET https://yourorgdomain.com/services/apex/apexrest/v1/caserequest/1234567890ABCDEFGH \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json"
 ```
